@@ -9,7 +9,6 @@ import networkx.algorithms.isomorphism as iso
 
 
 # CONSTANTS
-
 # Graph names for small graphs
 SMALL_ISOMORPHIC_GRAPHS_DICT = {(1, 0): 0,
                                 (2, 1): 0,
@@ -22,9 +21,9 @@ SMALL_ISOMORPHIC_GRAPHS_DICT = {(1, 0): 0,
                                 (4, 5): 4,
                                 (4, 6): 5}
 
-
+# HELPER FUNCTIONS
 # Helper function for initialization
-def load_graph(graph_name):
+def load_graph_fromfile(graph_name):
     """
     Load graph using networkx 'read_edgelist' method.
     All files are organized as a set of edges, possibly with weight values.
@@ -47,25 +46,37 @@ def load_graph(graph_name):
             'Graphs/ia-email-univ.mtx',
             create_using=nx.Graph())
 
-    if graph_name == 'misc-polblogs':
-        graph = nx.read_edgelist(
-            'Graphs/misc-polblogs.mtx',
-            create_using=nx.Graph(), data=(('weight', float),))
-
-    if graph_name == 'misc-as-caida':
-        graph = nx.read_edgelist(
-            'Graphs/misc-as-caida.mtx',
-            create_using=nx.Graph(), data=(('weight', float),))
-
     if graph_name == 'misc-fullb':
         graph = nx.read_edgelist(
             'Graphs/misc-fullb.mtx',
             create_using=nx.Graph())
-        for node in graph.nodes():
-            graph.remove_edge(node, node)
+
+    if graph_name == 'blckhole':
+        graph = nx.read_edgelist(
+            'Graphs/blckhole.mtx',
+            create_using=nx.Graph())
+
+    if graph_name == 'steam2':
+        graph = nx.read_edgelist(
+            'Graphs/steam2.mtx',
+            create_using=nx.Graph(), data=(('weight', float),))
+
+    if graph_name == 'NotreDame_yeast':
+        graph = nx.read_edgelist(
+            'Graphs/NotreDame_yeast.mtx',
+            create_using=nx.Graph())
+
+    if graph_name == 'fb-messages':
+        graph = nx.read_edgelist(
+            'Graphs/fb-messages.txt',
+            create_using=nx.Graph(), delimiter=',', data=(('weight', float),))
 
     if graph is None:
         raise KeyError("Graph name not found")
+
+    for node in graph.nodes():
+        if graph.has_edge(node, node):
+            graph.remove_edge(node, node)
 
     return graph
 
@@ -110,18 +121,18 @@ def get_graphlet_names(k):
 # in unordered method.
 def get_subgraph(graph, nodes):
     """
-    Manually construct a subgraph of 'T' given the list of nodes from 'T'.
+    Manually constructs the induced subgraph given a list of nodes from the full graph.
     Returns a new networkx graph object.
 
     NOTE:
-        Don't use networkx subgraph method because it's very slow.
+        We use this because the networkx subgraph method is very slow.
     """
     list_nodes = list(nodes)
     subgraph = nx.Graph()
     subgraph.add_nodes_from(nodes)
     for i, node in enumerate(list_nodes):
         neighbors = list(graph.neighbors(node))
-        for j in range(i, len(list_nodes)):
+        for j in range(i+1, len(list_nodes)):
             if list_nodes[j] in neighbors:
                 subgraph.add_edge(node, list_nodes[j])
     return subgraph
@@ -223,9 +234,13 @@ class LiftGraph(object):
     The loading of graph is in the init.
     Probability functions are calculated here.
     """
-    def __init__(self, graph_name, k,
+    def __init__(self, graph, k,
                  vertex_distribution="edge_uniform"):
-        self.graph = load_graph(graph_name)
+        if isinstance(graph, str):
+            self.graph = load_graph_fromfile(graph)
+        else:
+            self.graph = graph
+
         self.edge_num = self.graph.size()
         self.node_num = self.graph.number_of_nodes()
         self.k = k
@@ -428,6 +443,10 @@ class Lift(object):
         assert self.type == "unordered"
         graphlet_type, graphlet_match = find_type_match(
             get_subgraph(self.graph, graphlet_nodes), self.graphlet_list)
+        #print "Graph nodes (object): ", list(get_subgraph(self.graph, graphlet_nodes).nodes())
+        #print "Graph edges (object): ", list(get_subgraph(self.graph, graphlet_nodes).edges())
+        #print "Graph nodes (list): ", graphlet_nodes
+        #print "Graphlet match: ", graphlet_match
         inv_match = {i: j for j, i in graphlet_match.items()}
         degree_list = [self.graph.degree(inv_match[i]) for i in range(self.k)]
         graphlet_prob = self.prob_functions[graphlet_type](*degree_list)
@@ -462,15 +481,22 @@ class Lift(object):
             exp_counter = {i: 0 for i in range(self.graphlet_num)}
             for __ in range(steps_num):
                 graphlet_nodes = self.lift_graph.lift_unordered(v)
-                v = self.lift_graph.random_walk_nodes(v, burn_in)
+                while len(graphlet_nodes) != self.k:
+                    v0 = random.choice(list(self.graph.nodes()))
+                    if self.vertex_distribution == "edge_uniform":
+                        v = self.lift_graph.random_walk_nodes(v0, 100)
+                    else:
+                        raise NotImplementedError
+                    graphlet_nodes = self.lift_graph.lift_unordered(v)
                 graphlet_type, graphlet_prob = self.find_type_prob(
                     graphlet_nodes)
                 exp_counter[graphlet_type] += (graphlet_prob)**(-1)
+                v = self.lift_graph.random_walk_nodes(v, burn_in)
         expectation = {}
         graphlet_names_list = get_graphlet_names(self.k)
         for i in range(self.graphlet_num):
-            expectation[graphlet_names_list[i]] = (int(
-                exp_counter[i] * (steps_num * epoch_num) ** (-1)))
+            expectation[graphlet_names_list[i]] = (int(round(
+                exp_counter[i] * (steps_num * epoch_num) ** (-1))))
         return expectation
 
     def _graphlet_count_ordered(self, steps_num, burn_in, epoch_num):
