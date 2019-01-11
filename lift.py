@@ -46,30 +46,20 @@ def load_graph_fromfile(graph_name):
             'Graphs/ia-email-univ.mtx',
             create_using=nx.Graph())
 
+    if graph_name == 'misc-as-caida':
+        G = nx.read_edgelist(
+            'Graphs/misc-as-caida.mtx',
+            create_using=nx.Graph(), data=(('weight', float),))
+
     if graph_name == 'misc-fullb':
         graph = nx.read_edgelist(
             'Graphs/misc-fullb.mtx',
             create_using=nx.Graph())
 
-    if graph_name == 'blckhole':
-        graph = nx.read_edgelist(
-            'Graphs/blckhole.mtx',
-            create_using=nx.Graph())
-
-    if graph_name == 'steam2':
-        graph = nx.read_edgelist(
-            'Graphs/steam2.mtx',
+    if graph_name == 'misc-polblogs':
+        G = nx.read_edgelist(
+            'Graphs/misc-polblogs.mtx',
             create_using=nx.Graph(), data=(('weight', float),))
-
-    if graph_name == 'NotreDame_yeast':
-        graph = nx.read_edgelist(
-            'Graphs/NotreDame_yeast.mtx',
-            create_using=nx.Graph())
-
-    if graph_name == 'fb-messages':
-        graph = nx.read_edgelist(
-            'Graphs/fb-messages.txt',
-            create_using=nx.Graph(), delimiter=',', data=(('weight', float),))
 
     if graph is None:
         raise KeyError("Graph name not found")
