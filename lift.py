@@ -372,7 +372,7 @@ class Lift(object):
         Helper function for the unordered method.
         """
         x = {0: sympy.var('x_0')}
-        y = {0: sympy.var('y_0')}
+        y = {0: sympy.var('y_0')} 
         k = self.k
         graphlet_prob = {0: self.vertex_prob_sympy()}
         for n in range(2, k+1):
