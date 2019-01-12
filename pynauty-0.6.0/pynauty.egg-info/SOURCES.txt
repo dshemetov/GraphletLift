@@ -1,0 +1,9 @@
+README
+setup.py
+pynauty.egg-info/PKG-INFO
+pynauty.egg-info/SOURCES.txt
+pynauty.egg-info/dependency_links.txt
+pynauty.egg-info/top_level.txt
+src/__init__.py
+src/graph.py
+src/nautywrap.c

@@ -1,7 +1,5 @@
 # LiftSRW
-An algorithm to estimate the motif (or graphlet) counts by "lifting" a graph node to a connected induced subgraph of size k.
-
-The repository includes [the paper](graphlet_lift.pdf) describing the algorithm with theoretical analysis and experiments, includes [supplementary material](graphlet_lift_supp.pdf) for theoretical bound of the variation of the estimate, and includes the [Python code](Lift.ipynb) used for experiments.
+An algorithm to estimate the graphlet counts by a method we call lifting. The method is described and analyzed in [this paper](pdf/graphlet_lift.pdf), with some theoretical results in the [supplementary materials](pdf/graphlet_lift_supp.pdf). We also have a [Jupyter notebook](Lift.ipynb) used for experiments.
 
 # TODO:
 - [x] Add tests via small test graphs for which frequency counts are known and hardcode those.

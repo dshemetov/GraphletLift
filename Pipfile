@@ -8,6 +8,8 @@ name = "pypi"
 [packages]
 networkx = "*"
 sympy = "*"
+pynauty = {path = "./pynauty-0.6.0", editable = true}
+ipykernel = "*"
 
 [requires]
 python_version = "3.7"
