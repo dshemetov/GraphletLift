@@ -253,8 +253,8 @@ def remove_self_loops(graph):
 
 def get_degree_list(graph, graphlet_match):
     invert_match = {j: i for i, j in graphlet_match.items()}
-    degree_list = [graph.degree(invert_match[key])
-                   for key in invert_match.keys()]
+    degree_list = [graph.degree(invert_match[i])
+                   for i in range(len(invert_match.keys()))]
     return degree_list
 
 def get_vertex_prob_sympy(graph, vertex_distribution):
@@ -353,7 +353,7 @@ class Lift():
             self.graph = load_graph_fromfile(graph)
         else:
             self.graph = graph
-        if k > graph.number_of_nodes():
+        if k > self.graph.number_of_nodes():
             raise ValueError("Graphlets bigger than size of graph.")
 
         self.k = k
