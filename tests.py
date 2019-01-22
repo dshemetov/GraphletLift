@@ -4,8 +4,9 @@ Unit tests for the LiftSRW module.
 import networkx as nx
 import lift as lt
 
-NUM_STEPS = 13000
+NUM_STEPS = 20000
 VERBOSE = True
+THRESHOLD = 0.1
 
 def get_percent_error(v1, v2):
     """
@@ -21,7 +22,6 @@ def run_test(graph, k):
     graphlet_counts = lift_unordered.graphlet_count(num_steps=NUM_STEPS)
 
     return graphlet_counts
-
 
 def test_graph(graph):
     """
@@ -60,33 +60,51 @@ def test_graph(graph):
         graphlet_counts = lift_unordered.graphlet_count(num_steps=NUM_STEPS)
         assert graphlet_counts["2-path"] == 10
         print("Ladder graph passed.")
+    elif graph == "bio-celegansneural":
+        graphlet_counts = run_test("bio-celegansneural", 3)
+        actual_triangle_count = 12.6 * 10**3 / 3
+        assert ((graphlet_counts["triangle"] - actual_triangle_count)
+                / actual_triangle_count < THRESHOLD)
+        print(graph + " passed.")
+        print(graphlet_counts, "\n")
+    elif graph == "ia-email-univ":
+        graphlet_counts = run_test("bio-celegansneural", 3)
+        actual_triangle_count = 16000 / 3
+        assert ((graphlet_counts["triangle"] - actual_triangle_count)
+                / actual_triangle_count < THRESHOLD)
+        print(graph + " passed.")
+        print(graphlet_counts, "\n")
+    elif graph == "misc-fullb":
+        graphlet_counts = run_test("bio-celegansneural", 3)
+        actual_triangle_count = 180.6 * 10**6 / 3
+        assert ((graphlet_counts["triangle"] - actual_triangle_count)
+                / actual_triangle_count < THRESHOLD)
+        print(graph + " passed.")
+        print(graphlet_counts, "\n")
+    elif graph == "misc-polblogs":
+        graphlet_counts = run_test("misc-polblogs", 3)
+        actual_triangle_count = 459.4 * 10**3 / 3
+        assert ((graphlet_counts["triangle"] - actual_triangle_count)
+                / actual_triangle_count < THRESHOLD)
+        print(graph + " passed.")
+        print(graphlet_counts, "\n")
     else:
-        print "Graph unknown."
+        print("Graph unknown.")
 
 test_graph("path")
 test_graph("wheel")
 test_graph("ladder")
+test_graph("bio-celegansneural")
+test_graph("ia-email-univ")
+test_graph("misc-fullb")
+test_graph("misc-polblogs")
 
+# # ICYMI: nx.star_graph(4) has 5 nodes.
+# graphlet_counts = run_test(nx.star_graph(4), 5)
+# assert graphlet_counts[0] == 1
 
-def test_graph_file(name, triangle_count, verbose=False):
-    """
-    Similar to the above, except it counts triangles on large graphs from files.
-    """
-    graphlet_counts = run_test(name, 3)
-    triangle_count = triangle_count / 3.0
-    threshold = .1 * triangle_count
-    if verbose:
-        print("Given: ", triangle_count,
-              "; empirical: ", graphlet_counts["triangle"])
-    else:
-        assert abs(graphlet_counts["triangle"] - triangle_count) < threshold
-    print(name + " triangles passed.")
+graphlet_counts = run_test(nx.complete_graph(5), 5)
+assert graphlet_counts[20] == 1
 
-# http://networkrepository.com/bio-celegansneural.php
-test_graph_file("bio-celegansneural", 9900, verbose=VERBOSE)
-# http://networkrepository.com/ia-email-univ.php
-test_graph_file("ia-email-univ", 16000, verbose=VERBOSE)
-# http://networkrepository.com/fullb.php
-test_graph_file("misc-fullb", 180.6 * 10**6, verbose=VERBOSE)
-# http://networkrepository.com/polblogs.php
-test_graph_file("misc-polblogs", 459.4 * 10**3, verbose=VERBOSE)
+graphlet_counts = run_test(nx.complete_graph(10), 5)
+assert graphlet_counts[20] == 252
