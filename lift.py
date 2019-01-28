@@ -60,6 +60,7 @@ def get_subgraph(graph, nodes):
     Manually constructs the induced subgraph given a list of nodes from the full graph.
     Returns a new networkx graph object.
     Helper function for shotgun method and probability functions in the unordered method.
+    
 
     NOTE:
         We use this because the networkx subgraph method is very slow.
