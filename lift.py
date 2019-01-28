@@ -16,6 +16,7 @@ SMALL_ISOMORPHIC_GRAPHS_DICT = {(1, 0): 0,
                                 (4, 4, 3): 2,
                                 (4, 5): 4,
                                 (4, 6): 5}
+TRANSIENT_LENGTH = 20
 
 def get_graphlet_dict(k):
     """
@@ -73,7 +74,7 @@ def get_subgraph(graph, nodes):
                 subgraph.add_edge(node, list_nodes[j])
     return subgraph
 
-def find_type_match(graph, nx_graphlet_dict, na_graphlet_dict=None):
+def find_type_match(graph, nx_graphlet_dict, na_graphlet_cert_dict):
     """
     Given a graph, find an isomorphism with one of the canonical graphs from
     'graphlet_list'.
@@ -89,7 +90,6 @@ def find_type_match(graph, nx_graphlet_dict, na_graphlet_dict=None):
     nodes = graph.nodes()
     node_num = len(nodes)
     nx_graphlet_list = nx_graphlet_dict[node_num]
-    na_graphlet_list = na_graphlet_dict[node_num]
 
     if node_num == 1:
         # trivial graph: relabel the node to zero.
@@ -140,20 +140,12 @@ def find_type_match(graph, nx_graphlet_dict, na_graphlet_dict=None):
     else:
         # Use pynauty for n > 4.
         na_graph = nxgraph_to_relabeled_nagraph(graph)
-        if na_graphlet_list is None:
-            na_graphlet_list = [nxgraph_to_relabeled_nagraph(graph2)
-                                for graph2 in nx_graphlet_list]
-
-        iso_index = 0
-        for (i, graph2) in enumerate(na_graphlet_list):
-            if na.certificate(na_graph) == na.certificate(graph2):
-                iso_index = i
-                break
+        (_, ind) = na_graphlet_cert_dict[na.certificate(na_graph)]
 
         #import pdb; pdb.set_trace()
-        matcher = iso.GraphMatcher(graph, nx_graphlet_list[iso_index])
+        matcher = iso.GraphMatcher(graph, nx_graphlet_list[ind])
         mapping = next(matcher.match())
-        return (iso_index, mapping)
+        return (ind, mapping)
 
 def find_type(graph, na_graphlet_cert_dict):
     """
@@ -186,7 +178,6 @@ def find_type(graph, na_graphlet_cert_dict):
         #         graph_name = i
         #         break
 
-
 def adjacency_to_nagraph(adjacency):
     import pynauty as na
     return na.Graph(number_of_vertices=len(adjacency.keys()),
@@ -216,28 +207,26 @@ def load_graph_fromfile(graph_name):
     graph = None
     if graph_name == 'bio-celegansneural':
         graph = nx.read_edgelist(
-            'Graphs/bio-celegansneural.mtx',
-            create_using=nx.Graph(), data=(('weight', float),))
+            'Graphs/bio-celegansneural.edgelist',
+            create_using=nx.Graph())
 
     if graph_name == 'ia-email-univ':
         graph = nx.read_edgelist(
-            'Graphs/ia-email-univ.mtx',
+            'Graphs/ia-email-univ.edgelist',
             create_using=nx.Graph())
 
     if graph_name == 'misc-fullb':
         graph = nx.read_edgelist(
-            'Graphs/misc-fullb.mtx',
+            'Graphs/misc-fullb.edgelist',
             create_using=nx.Graph())
 
     if graph_name == 'misc-polblogs':
         graph = nx.read_edgelist(
-            'Graphs/misc-polblogs.mtx',
-            create_using=nx.Graph(), data=(('weight', float),))
+            'Graphs/misc-polblogs.edgelist',
+            create_using=nx.Graph())
 
     if graph is None:
         raise KeyError("Graph name not found")
-
-    remove_self_loops(graph)
 
     return graph
 
@@ -290,7 +279,8 @@ def get_vertex_prob(graph, vertex_distribution, vertex_degree):
     else:
         raise NotImplementedError
 
-def sample_vertex(graph, vertex_distribution, transient_length):
+def sample_vertex(graph, vertex_distribution="edge_uniform",
+                         transient_length=TRANSIENT_LENGTH):
     """
     Samples a vertex from a graph by a random walk of a fixed length.
 
@@ -303,7 +293,7 @@ def sample_vertex(graph, vertex_distribution, transient_length):
         raise NotImplementedError
     return vertex
 
-def random_walk_nodes(graph, vertex0, transient_length):
+def random_walk_nodes(graph, vertex0, transient_length=TRANSIENT_LENGTH):
     """
     Random walk used to pick an initial vertex.
 
@@ -324,6 +314,7 @@ def get_graphlet_cert_dict(na_graphlet_dict):
 
     return na_graphlet_cert_dict
 
+
 class Lift():
     """
     A class for running a 'graphlet_count' method on the graph.
@@ -342,7 +333,7 @@ class Lift():
          '4-cycle': 15824, '4-clique': 2254, '4-path': 514435}
     """
     def __init__(self, graph, k, lift_type="unordered",
-                 vertex_distribution="edge_uniform", subgraph_method="k"):
+                 vertex_distribution="edge_uniform"):
         """
         Prepares a graph for lifting. Loads the graph, computes the probability
         functions, and prepares a list of k-graphlets for isomorphism.
@@ -359,7 +350,6 @@ class Lift():
         self.k = k
         self.type = lift_type
         self.vertex_distribution = vertex_distribution
-        self.subgraph_method = subgraph_method
         # Build graphlet library
         self.nx_graphlet_dict = get_graphlet_dict(k)
         self.na_graphlet_dict = {i:[nxgraph_to_relabeled_nagraph(graph)
@@ -386,7 +376,8 @@ class Lift():
         if (lift_type == "unordered") and (self.prob_functions is None):
             self.set_prob_functions()
 
-    def graphlet_count(self, num_steps=1000, transient_length=5, num_epoch=1):
+    def graphlet_count(self, num_steps=1000,
+                       transient_length=TRANSIENT_LENGTH, num_epoch=1):
         """
         Wrapper for different 'graphlet_count' methods.
 
@@ -403,7 +394,9 @@ class Lift():
                                                 num_epoch)
         raise ValueError("wrong lift type")
 
-    def _graphlet_count_unordered(self, num_steps, transient_length, num_epoch):
+    def _graphlet_count_unordered(self, num_steps,
+                                  transient_length=TRANSIENT_LENGTH,
+                                  num_epoch=1):
         """
         Unordered lifting method.
         Lifts a graphlet from initial vertex and calculates its frequency.
@@ -436,21 +429,25 @@ class Lift():
         self.exp_counter = exp_counter
         return expectation
 
-    def _graphlet_count_ordered(self, num_steps, transient_length, num_epoch):
+    def _graphlet_count_ordered(self, num_steps,
+                                transient_length=TRANSIENT_LENGTH,
+                                num_epoch=1):
         raise NotImplementedError
 
-    def _graphlet_count_shotgun(self, num_steps, transient_length, num_epoch):
+    def _graphlet_count_shotgun(self, num_steps,
+                                transient_length=TRANSIENT_LENGTH,
+                                num_epoch=1):
         """
         Shotgun lifting method.
         Lifts a vertex to 'k-1' graphlet, and inludes all its neighbors into
         the estimation.
         """
         if self.k == 4:
-            coefficients = {0: 12, 1: 8, 2: 12, 3: 16, 4: 20, 5: 24}
+            co = {0: 12, 1: 8, 2: 12, 3: 16, 4: 20, 5: 24}
         elif self.k == 3:
-            coefficients = {0: 4, 1: 6}
+            co = {0: 4, 1: 6}
         elif self.k == 2:
-            coefficients = {0: 2}
+            co = {0: 2}
         for _ in range(num_epoch):
             v = sample_vertex(self.graph, self.vertex_distribution,
                               transient_length)
@@ -460,11 +457,7 @@ class Lift():
                  neighbor_list) = (self.sample_lift_shotgun(v))
                 neighbor_set = set(neighbor_list)
                 for u in neighbor_set:
-                    if self.subgraph_method == 'nx':
-                        graph = nx.Graph(self.graph
-                                         .subgraph(subgraph.union({u})))
-                    else:
-                        graph = get_subgraph(self.graph, subgraph.union({u}))
+                    graph = nx.Graph(self.graph.subgraph(subgraph.union({u})))
                     graph_type = find_type(graph, self.na_graphlet_cert_dict)
                     exp_counter[graph_type] += (subgraph_prob)**(-1)
                 v = random_walk_nodes(self.graph, v, transient_length)
@@ -472,10 +465,10 @@ class Lift():
         graphlet_names_list = get_graphlet_names(self.k)
         for i in range(self.graphlet_num):
             expectation[graphlet_names_list[i]] = (int(
-                exp_counter[i] * (num_steps * coefficients[i]) ** (-1)))
+                exp_counter[i] * (num_steps * co[i]) ** (-1)))
         return expectation
 
-    def sample_unordered_lift(self, vertex, transient_length):
+    def sample_unordered_lift(self, vertex, transient_length=TRANSIENT_LENGTH):
         """
         Attempts a lift at the vertex v. If a graphlet of smaller size is
         obtained, the node is resampled until we get a graphlet of size k.
@@ -563,10 +556,11 @@ class Lift():
         Returns a dictionary {ind: probability}, with 'ind' being the index of
         the graphlet in 'graphlet_dict'.
         EXAMPLE:
-            python: prob_functions(graph, 3)
-            {0: 0.001/(x_0 + x_2 - 2) + 0.001/(x_0 + x_1 - 2),
-             1: 0.002/(x_1 + x_2 - 2) + 0.002/(x_0 + x_2 - 2) +
-                0.002/(x_0 + x_1 - 2)}
+            > graph = nx.path_graph(5)
+            > prob_functions(graph, 3)
+            {0: 1/(4*(x_0 + x_2 - 2)) + 1/(4*(x_0 + x_1 - 2)),
+             1: 1/(2*(x_1 + x_2 - 2)) + 1/(2*(x_0 + x_2 - 2))
+                + 1/(2*(x_0 + x_1 - 2))
 
         Helper function for the unordered method.
         """
@@ -586,16 +580,12 @@ class Lift():
                     # We sum the conditional probabilities
                     # P(S_(n-1)) * P(S_n | S_(n-1)) for each connected subgraph
                     # S_(n-1) of S_n and for n in {2, ..., k}.
-                    if self.subgraph_method == 'nx':
-                        subgraph = nx.Graph(self.graph
-                                            .subgraph(graph.nodes()-{u}))
-                    else:
-                        subgraph = get_subgraph(graph, graph.nodes()-{u})
+                    subgraph = nx.Graph(graph.subgraph(graph.nodes()-{u}))
                     if not nx.is_connected(subgraph):
                         continue
                     subgraph_index, subgraph_match = find_type_match(subgraph,
-                                                         self.nx_graphlet_dict,
-                                                         self.na_graphlet_dict)
+                                                    self.nx_graphlet_dict,
+                                                    self.na_graphlet_cert_dict)
                     subgraph_prob = (subgraph_probs[subgraph_index]
                                      .subs({x[i]: y[i] for i in range(n-1)})
                                      .subs({y[j]: x[i] for i, j in
@@ -612,13 +602,10 @@ class Lift():
         Helper function for an unordered method, uses probability functions.
         """
         assert self.type == "unordered"
-        if self.subgraph_method == "nx":
-            subgraph = nx.Graph(self.graph.subgraph(graphlet_nodes))
-        else:
-            subgraph = get_subgraph(self.graph, graphlet_nodes)
+        subgraph = nx.Graph(self.graph.subgraph(graphlet_nodes))
         graphlet_type, graphlet_match = find_type_match(subgraph,
-                                                        self.nx_graphlet_dict,
-                                                        self.na_graphlet_dict)
+                                                    self.nx_graphlet_dict,
+                                                    self.na_graphlet_cert_dict)
         # invert_match = {j: i for i, j in graphlet_match.items()}
         # degree_list = [self.graph.degree(invert_match[i])
         #                for i in range(self.k)]
