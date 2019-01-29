@@ -4,7 +4,7 @@ Unit tests for the LiftSRW module.
 import networkx as nx
 import lift as lt
 
-NUM_STEPS = 20000
+NUM_STEPS = 10000
 VERBOSE = True
 THRESHOLD = 0.1
 
@@ -96,8 +96,8 @@ test_graph("wheel")
 test_graph("ladder")
 test_graph("bio-celegansneural")
 test_graph("ia-email-univ")
-test_graph("misc-fullb")
-test_graph("misc-polblogs")
+# test_graph("misc-fullb")
+# test_graph("misc-polblogs")
 
 # ICYMI: nx.star_graph(4) has 5 nodes.
 graphlet_counts = run_test(nx.star_graph(4), 5)
@@ -111,6 +111,16 @@ graphlet_counts = run_test(nx.complete_graph(10), 5)
 assert graphlet_counts[20] == 252
 print("Complete graph passed.")
 
+import time
+lift = lt.Lift("bio-celegansneural", 4)
+times = []
+for i in range(100):
+    start = time.time()
+    lift.graphlet_count(num_steps=1)
+    times.append(time.time() - start)
+print("Average time taken: ", sum(times)/100)
+
+5 + 5
 
 # # Pynauty tests.
 # import networkx as nx
