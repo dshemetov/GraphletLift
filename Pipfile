@@ -8,10 +8,10 @@ name = "pypi"
 [packages]
 networkx = "*"
 sympy = "*"
-pynauty = {path = "./pynauty-0.6.0", editable = true}
 ipykernel = "*"
 matplotlib = "*"
 pylint = "*"
+pipfile = "*"
 
 [requires]
-python_version = "3.7"
+python_version = "3.5"

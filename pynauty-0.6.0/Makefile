@@ -9,7 +9,6 @@ python_version_patch := $(word 3,${python_version_full})
 machine := $(shell uname -m)
 LIBPATH = build/lib.linux-$(machine)-${python_version_major}.${python_version_minor}
 
-
 help:
 	@echo Available targets:
 	@echo
