@@ -60,7 +60,7 @@ def get_subgraph(graph, nodes):
     Manually constructs the induced subgraph given a list of nodes from the full graph.
     Returns a new networkx graph object.
     Helper function for shotgun method and probability functions in the unordered method.
-    
+
 
     NOTE:
         We use this because the networkx subgraph method is very slow.
@@ -218,12 +218,12 @@ def load_graph_fromfile(graph_name):
 
     if graph_name == 'misc-fullb':
         graph = nx.read_edgelist(
-            'Graphs/misc-fullb.edgelist',
+            'Graphs/fullb.edgelist',
             create_using=nx.Graph())
 
     if graph_name == 'misc-polblogs':
         graph = nx.read_edgelist(
-            'Graphs/misc-polblogs.edgelist',
+            'Graphs/polblogs.edgelist',
             create_using=nx.Graph())
 
     if graph is None:
