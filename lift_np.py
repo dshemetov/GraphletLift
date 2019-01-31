@@ -562,10 +562,10 @@ class Lift():
                 _mp_get_degree_list, [e[1] for e in types]
                 )
             #import pdb; pdb.set_trace()
-        samples = [
-            (e[0], self.prob_functions[e[0]](*degree_lists[i]))
-            for i, e in enumerate(types)
-            ]
+            samples = [
+                (e[0], self.prob_functions[e[0]](*degree_lists[i]))
+                for i, e in enumerate(types)
+                ]
             # method2 = partial(
             #     get_graphlet_prob, self.graph,
             #     self.nx_graphlet_dict, self.na_graphlet_cert_dict,
@@ -573,7 +573,7 @@ class Lift():
             # )
             # samples = p.map(method2, graphlet_samples)
 
-        return (samples, graphlet_samples)
+            return (samples, graphlet_samples)
 
     def _get_graphlet_count_ordered(self, num_steps,
                                     burn_in=BURN_IN):
