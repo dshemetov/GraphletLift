@@ -453,7 +453,7 @@ class Lift():
         if self.type == "unordered":
             samples, graphlet_samples = self._get_graphlet_count_unordered(
                 num_steps, burn_in)
-            self.graphlet_samples += graphlet_samples
+            self.graphlet_samples = zip(samples, graphlet_samples)
             #import pdb; pdb.set_trace()
             self.update_counts(samples)
             if self.k <= 4:

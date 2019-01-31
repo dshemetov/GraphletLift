@@ -98,26 +98,26 @@ def test_graph(graph):
         print(graphlet_counts, "\n")
     else:
         print("Graph unknown.")
-
-test_graph("path")
-test_graph("wheel")
-test_graph("ladder")
-test_graph("bio-celegansneural")
-test_graph("ia-email-univ")
-# test_graph("misc-fullb")
-# test_graph("misc-polblogs")
-
-# ICYMI: nx.star_graph(4) has 5 nodes.
-graphlet_counts = run_test(nx.star_graph(4), 5)
-assert graphlet_counts[0] == 1
-print("Star graph passed.")
-
-graphlet_counts = run_test(nx.complete_graph(5), 5)
-assert graphlet_counts[20] == 1
-
-graphlet_counts = run_test(nx.complete_graph(10), 5)
-assert graphlet_counts[20] == 252
-print("Complete graph passed.")
+#
+# test_graph("path")
+# test_graph("wheel")
+# test_graph("ladder")
+# test_graph("bio-celegansneural")
+# test_graph("ia-email-univ")
+# # test_graph("misc-fullb")
+# # test_graph("misc-polblogs")
+#
+# # ICYMI: nx.star_graph(4) has 5 nodes.
+# graphlet_counts = run_test(nx.star_graph(4), 5)
+# assert graphlet_counts[0] == 1
+# print("Star graph passed.")
+#
+# graphlet_counts = run_test(nx.complete_graph(5), 5)
+# assert graphlet_counts[20] == 1
+#
+# graphlet_counts = run_test(nx.complete_graph(10), 5)
+# assert graphlet_counts[20] == 252
+# print("Complete graph passed.")
 
 import time
 lift = lt.Lift("bio-celegansneural", 4)
