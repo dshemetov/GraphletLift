@@ -3,7 +3,7 @@ import networkx as nx
 import numpy as np
 import lift_np as lt
 
-NUM_STEPS = 1000
+NUM_STEPS = 200000
 
 def run_longtest(graph_name, k):
     lift = lt.Lift(graph_name, k)
@@ -18,10 +18,12 @@ def run_longtest(graph_name, k):
 graph_names = [
     "bio-celegansneural",
     "misc-fullb",
-    #"as-caida",
-    #"ia-email-univ",
-    #"socfb-B-anon"
+    "as-caida",
+    "ia-email-univ",
+    "socfb-B-anon"
 ]
 for graph_name in graph_names:
     run_longtest(graph_name, 3)
     run_longtest(graph_name, 4)
+    run_longtest(graph_name, 5)
+    run_longtest(graph_name, 6)
