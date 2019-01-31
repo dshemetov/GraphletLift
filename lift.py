@@ -75,7 +75,7 @@ def get_subgraph(graph, nodes):
                 subgraph.add_edge(node, list_nodes[j])
     return subgraph
 
-def find_type_match(graph, nx_graphlet_dict, na_graphlet_cert_dict):
+def find_type_match(nx_graphlet_dict, na_graphlet_cert_dict, graph):
     """
     Given a graph, find an isomorphism with one of the canonical graphs from
     'graphlet_list'.
@@ -301,7 +301,7 @@ def get_vertex_prob(graph, vertex_degree, vertex_distribution):
     else:
         raise NotImplementedError
 
-def sample_vertex(graph, burn_in=BURN_IN):
+def sample_vertex(graph, extra=None, burn_in=BURN_IN):
     """
     Samples a vertex from a graph by a random walk of a fixed length.
 
@@ -335,20 +335,22 @@ def get_graphlet_cert_dict(na_graphlet_dict):
 
     return na_graphlet_cert_dict
 
-def get_graphlet_prob(lift_obj, graphlet_nodes):
+def get_graphlet_prob(
+        graph, nx_graphlet_dict, na_graphlet_cert_dict,
+        prob_functions, graphlet_nodes):
     """
     Helper function for the unordered method. Uses probability functions.
     """
-    subgraph = nx.Graph(lift_obj.graph.subgraph(graphlet_nodes))
+    subgraph = nx.Graph(graph.subgraph(graphlet_nodes))
     graphlet_type, graphlet_match = find_type_match(
-        subgraph, lift_obj.nx_graphlet_dict, lift_obj.na_graphlet_cert_dict
+        nx_graphlet_dict, na_graphlet_cert_dict, subgraph
         )
     # invert_match = {j: i for i, j in graphlet_match.items()}
     # degree_list = [self.graph.degree(invert_match[i])
     #                for i in range(self.k)]
-    degree_list = get_degree_list(lift_obj.graph, graphlet_match)
+    degree_list = get_degree_list(graph, graphlet_match)
     # import pdb; pdb.set_trace()
-    prob_function = lift_obj.prob_functions[graphlet_type]
+    prob_function = prob_functions[graphlet_type]
     graphlet_prob = prob_function(*degree_list)
     return (graphlet_type, graphlet_prob)
 
@@ -363,7 +365,7 @@ def sample_unordered_lift(
     """
     graphlet_nodes = sample_unordered_lift_once(graph, k, vertex)
     while len(graphlet_nodes) != k:
-        vertex = sample_vertex(graph, burn_in)
+        vertex = sample_vertex(graph)
         graphlet_nodes = sample_unordered_lift_once(graph, k, vertex)
     return graphlet_nodes
 
@@ -388,9 +390,6 @@ def sample_unordered_lift_once(graph, k, init_vertex):
         graphlet_nodes.add(u)
     return graphlet_nodes
 
-def _mp_wrapper_sample_unordered_lift(_):
-    return
-
 class Lift():
     """
     A class for running a 'graphlet_count' method on the graph.
@@ -409,7 +408,8 @@ class Lift():
          '4-cycle': 15824, '4-clique': 2254, '4-path': 514435}
     """
     def __init__(
-            self, graph, k, lift_type="unordered", vertex_choice = "uniform"):
+            self, graph, k, lift_type="unordered",
+            vertex_choice = "uniform"):
         """
         Prepares a graph for lifting. Loads the graph, computes the probability
         functions, and prepares a list of k-graphlets for isomorphism.
@@ -512,28 +512,66 @@ class Lift():
         Trusted - DS.
         """
         import multiprocessing as mp
+        from functools import partial
         with mp.Pool() as p:
             # Sample vertices.
             if self.vertex_choice == "random walk":
-                vertices = [sample_vertex(self.graph, burn_in)]
+                vertices = [sample_vertex(self.graph, burn_in=BURN_IN)]
                 for _ in range(num_steps-1):
                     vertices.append(randomwalk_from_vertex(
                         self.graph, vertices[-1], burn_in))
             else:
-                vertices = [sample_vertex(self.graph, burn_in)
-                            for i in range(num_steps)]
+                _mp_sample_vertex = partial(
+                    sample_vertex, self.graph, burn_in=BURN_IN)
+                vertices = p.map(_mp_sample_vertex, range(num_steps))
 
+            # Non-parallel code.
             # Sample graphlets at those vertices.
-            graphlet_samples = [
-                sample_unordered_lift(self.graph, self.k, vertex, burn_in)
-                for vertex in vertices
-            ]
+            # graphlet_samples = [
+            #     sample_unordered_lift(self.graph, self.k, vertex, burn_in)
+            #     for vertex in vertices
+            # ]
+            # Parallel code.
+            _mp_sample_graphlet = partial(
+                sample_unordered_lift, self.graph, self.k,
+                burn_in=BURN_IN)
+            graphlet_samples = p.map(_mp_sample_graphlet, vertices)
 
             # Convert graphlets to probabilities and types.
+            # Non-parallel code.
+            # samples = [
+            #     get_graphlet_prob(
+            #         self.graph, self.nx_graphlet_dict,
+            #         self.na_graphlet_cert_dict,
+            #         self.prob_functions, graphlet_sample)
+            #     for graphlet_sample in graphlet_samples
+            #     ]
+
+            # Parallel code.
+            subgraphs = p.map(self.graph.subgraph, graphlet_samples)
+            subgraphs = p.map(nx.Graph, subgraphs)
+            _mp_find_type = partial(
+                find_type_match, self.nx_graphlet_dict,
+                self.na_graphlet_cert_dict)
+            #import pdb; pdb.set_trace()
+            types = p.map(_mp_find_type, subgraphs)
+            _mp_get_degree_list = partial(
+                get_degree_list, self.graph
+            )
+            degree_lists = p.map(
+                _mp_get_degree_list, [e[1] for e in types]
+                )
+            #import pdb; pdb.set_trace()
             samples = [
-                get_graphlet_prob(self, graphlet_sample)
-                for graphlet_sample in graphlet_samples
+                (e[0], self.prob_functions[e[0]](*degree_lists[i]))
+                for i, e in enumerate(types)
                 ]
+            # method2 = partial(
+            #     get_graphlet_prob, self.graph,
+            #     self.nx_graphlet_dict, self.na_graphlet_cert_dict,
+            #     self.prob_functions
+            # )
+            # samples = p.map(method2, graphlet_samples)
 
             return (samples, graphlet_samples)
 
@@ -557,7 +595,7 @@ class Lift():
         elif self.k == 2:
             co = {0: 2}
 
-        v = sample_vertex(self.graph, burn_in)
+        v = sample_vertex(self.graph, burn_in=BURN_IN)
         graphlet_counts = {i: 0 for i in range(graphlet_num)}
         for __ in range(num_steps):
             (subgraph, subgraph_prob,
@@ -657,8 +695,9 @@ class Lift():
                     if not nx.is_connected(subgraph):
                         continue
                     subgraph_index, subgraph_match = find_type_match(
-                        subgraph, self.nx_graphlet_dict,
-                        self.na_graphlet_cert_dict
+                        self.nx_graphlet_dict,
+                        self.na_graphlet_cert_dict,
+                        subgraph
                         )
                     subgraph_prob = (subgraph_probs[subgraph_index]
                                      .subs({x[i]: y[i] for i in range(n-1)})
