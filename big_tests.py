@@ -17,9 +17,9 @@ def run_longtest(graph_name, k):
 
 graph_names = [
     "bio-celegansneural",
+    "ia-email-univ",
     "misc-fullb",
     "as-caida",
-    "ia-email-univ",
     "socfb-B-anon"
 ]
 for graph_name in graph_names:

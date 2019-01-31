@@ -45,15 +45,15 @@ def convert_mtx(file_in, file_out1, file_out2):
                     fout2.write("\n")
 
 # Convert the files in your directory
-directory = "/Users/dmitron/Documents/GradSchool/GraphletLift/code/LiftSRW/Graphs/"
+directory = "Graphs/"
 # Specify the ones you want to convert here. Comment the ones you don't out
 network_files = [
     # "bio-celegansneural",
     # "fullb",
     # "ia-email-univ",
     # "polblogs",
-    # "as-caida",
-    # "socfb-B-anon"
+    "as-caida",
+    "socfb-B-anon"
 ]
 for network_file in network_files:
     convert_mtx(
@@ -65,26 +65,26 @@ for network_file in network_files:
 # Convert the wiki social network file in a special way because it came
 # as a list of edges, instead of a .mtx file. First rename the '.edges' file
 # to '.edgelist'. Then run this code snippet.
-graph = nx.read_edgelist(
-    'Graphs/ia-wiki-Talk-dir.edgelist',
-    create_using=nx.Graph())
-remove_self_loops(graph)
-fedgelist = open('Graphs/ia-wiki-Talk-dir.edgelist', 'w')
-fedges = open('Graphs/ia-wiki-Talk-dir.edges', 'w')
-
-fedges.write(str(graph.number_of_nodes()))
-fedges.write(" ")
-fedges.write(str(graph.number_of_edges()))
-fedges.write("\n")
-for edge in graph.edges():
-    fedges.write(str(edge[0]))
-    fedges.write(" ")
-    fedges.write(str(edge[1]))
-    fedges.write("\n")
-    fedgelist.write(str(edge[0]))
-    fedgelist.write(" ")
-    fedgelist.write(str(edge[1]))
-    fedgelist.write("\n")
-
-fedgelist.close()
-fedges.close()
+# graph = nx.read_edgelist(
+#     'Graphs/ia-wiki-Talk-dir.edgelist',
+#     create_using=nx.Graph())
+# remove_self_loops(graph)
+# fedgelist = open('Graphs/ia-wiki-Talk-dir.edgelist', 'w')
+# fedges = open('Graphs/ia-wiki-Talk-dir.edges', 'w')
+#
+# fedges.write(str(graph.number_of_nodes()))
+# fedges.write(" ")
+# fedges.write(str(graph.number_of_edges()))
+# fedges.write("\n")
+# for edge in graph.edges():
+#     fedges.write(str(edge[0]))
+#     fedges.write(" ")
+#     fedges.write(str(edge[1]))
+#     fedges.write("\n")
+#     fedgelist.write(str(edge[0]))
+#     fedgelist.write(" ")
+#     fedgelist.write(str(edge[1]))
+#     fedgelist.write("\n")
+#
+# fedgelist.close()
+# fedges.close()
