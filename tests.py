@@ -2,6 +2,7 @@
 Unit tests for the LiftSRW module.
 """
 import networkx as nx
+import numpy as np
 import lift as lt
 
 NUM_STEPS = 10000
@@ -19,7 +20,8 @@ def run_test(graph, k):
     Simply runs the new code for a given graph and a given graphlet size.
     """
     lift_unordered = lt.Lift(graph, k, lift_type="unordered")
-    graphlet_counts = lift_unordered.graphlet_count(num_steps=NUM_STEPS)
+    graphlet_counts = lift_unordered.get_graphlet_count(
+        num_steps=NUM_STEPS)
 
     return graphlet_counts
 
@@ -32,32 +34,38 @@ def test_graph(graph):
     if graph == "path":
         path_graph = nx.path_graph(5)
         lift_unordered = lt.Lift(path_graph, 3, lift_type="unordered")
-        graphlet_counts = lift_unordered.graphlet_count(num_steps=NUM_STEPS)
+        graphlet_counts = lift_unordered.get_graphlet_count(
+            num_steps=NUM_STEPS)
         assert graphlet_counts["wedge"] == 3
         assert graphlet_counts["triangle"] == 0
         lift_unordered = lt.Lift(path_graph, 2, lift_type="unordered")
-        graphlet_counts = lift_unordered.graphlet_count(num_steps=NUM_STEPS)
+        graphlet_counts = lift_unordered.get_graphlet_count(
+            num_steps=NUM_STEPS)
         assert graphlet_counts["2-path"] == 4
 
         print("Path graph passed.")
     elif graph == "wheel":
         wheel_graph = nx.wheel_graph(6) # this is a 6-cycle with a star center node
         lift_unordered = lt.Lift(wheel_graph, 3, lift_type="unordered")
-        graphlet_counts = lift_unordered.graphlet_count(num_steps=NUM_STEPS)
+        graphlet_counts = lift_unordered.get_graphlet_count(
+            num_steps=NUM_STEPS)
         assert graphlet_counts["wedge"] == 10
         assert graphlet_counts["triangle"] == 5
         lift_unordered = lt.Lift(wheel_graph, 2, lift_type="unordered")
-        graphlet_counts = lift_unordered.graphlet_count(num_steps=NUM_STEPS)
+        graphlet_counts = lift_unordered.get_graphlet_count(
+            num_steps=NUM_STEPS)
         assert graphlet_counts["2-path"] == 10
         print("Wheel graph passed.")
     elif graph == "ladder":
         ladder_graph = nx.ladder_graph(4) # this is two 6-paths joined one to one
         lift_unordered = lt.Lift(ladder_graph, 3, lift_type="unordered")
-        graphlet_counts = lift_unordered.graphlet_count(num_steps=NUM_STEPS)
+        graphlet_counts = lift_unordered.get_graphlet_count(
+            num_steps=NUM_STEPS)
         assert graphlet_counts["wedge"] == 16
         assert graphlet_counts["triangle"] == 0
         lift_unordered = lt.Lift(ladder_graph, 2, lift_type="unordered")
-        graphlet_counts = lift_unordered.graphlet_count(num_steps=NUM_STEPS)
+        graphlet_counts = lift_unordered.get_graphlet_count(
+            num_steps=NUM_STEPS)
         assert graphlet_counts["2-path"] == 10
         print("Ladder graph passed.")
     elif graph == "bio-celegansneural":
@@ -116,11 +124,12 @@ lift = lt.Lift("bio-celegansneural", 4)
 times = []
 for i in range(100):
     start = time.time()
-    lift.graphlet_count(num_steps=1)
+    lift.get_graphlet_count(num_steps=1)
     times.append(time.time() - start)
-print("Average time taken: ", sum(times)/100)
-
-5 + 5
+print(
+    "Average time taken for a single iteration: ",
+    sum(times)/100
+    )
 
 # # Pynauty tests.
 # import networkx as nx

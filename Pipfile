@@ -12,6 +12,7 @@ ipykernel = "*"
 matplotlib = "*"
 pylint = "*"
 pipfile = "*"
+dill = "*"
 
 [requires]
 python_version = "3.5"
