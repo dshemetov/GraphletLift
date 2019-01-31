@@ -1,7 +1,7 @@
 import pickle
 import networkx as nx
 import numpy as np
-import lift as lt
+import lift_np as lt
 
 NUM_STEPS = 1000
 
