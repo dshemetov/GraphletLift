@@ -311,19 +311,19 @@ def run_psrw(graph_name, k, steps_num):
         pickle.dump(correlation, f)
 
 CACHED_GRAPHLET_LIST = graphlet_list(6)
-NUM_STEPS = 10**2
+NUM_STEPS = 10**7
 
 graph_names = [
     "bio-celegansneural",
-    # "ia-email-univ",
-    # "misc-fullb",
-    # "as-caida",
+    "ia-email-univ",
+    "misc-fullb",
+    "as-caida",
 ]
 for graph_name in graph_names:
-    run_psrw(graph_name, 5, steps_num = NUM_STEPS)
-    run_psrw(graph_name, 6, steps_num = NUM_STEPS)
+    run_psrw(graph_name, 5, steps_num=NUM_STEPS)
+    run_psrw(graph_name, 6, steps_num=NUM_STEPS)
 
-# run_psrw("socfb-B-anon", 3, steps_num = 10**7)
-# run_psrw("socfb-B-anon", 4, steps_num = 10**7)
-# run_psrw("socfb-B-anon", 5, steps_num = 10**7)
-# run_psrw("socfb-B-anon", 6, steps_num = 10**7)
+run_psrw("socfb-B-anon", 3, steps_num=NUM_STEPS)
+run_psrw("socfb-B-anon", 4, steps_num=NUM_STEPS)
+run_psrw("socfb-B-anon", 5, steps_num=NUM_STEPS)
+run_psrw("socfb-B-anon", 6, steps_num=NUM_STEPS)
