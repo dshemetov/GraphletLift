@@ -176,28 +176,28 @@ def load_graph(name, N=3):
 
     if name=='misc-polblogs':
         G = nx.read_edgelist(
-            'Graphs/misc-polblogs.edgelist',
+            'Graphs/polblogs.edgelist',
             create_using = nx.Graph())
 
     if name=='misc-as-caida':
         G = nx.read_edgelist(
-            'Graphs/misc-as-caida.mtx',
+            'Graphs/as-caida.edgelist',
             create_using = nx.Graph())
 
     if name=='misc-fullb':
         G = nx.read_edgelist(
-            'Graphs/misc-fullb.mtx',
+            'Graphs/fullb.edgelist',
             create_using = nx.Graph())
 
-    if graph_name == 'socfb-B-anon':
-        graph = nx.read_edgelist(
+    if name == 'socfb-B-anon':
+        G = nx.read_edgelist(
             'Graphs/socfb-B-anon.edgelist',
             create_using=nx.Graph())
 
     if G is None:
         raise KeyError
 
-    return {'graph': G, 'ground_truth': ground_truth}
+    return G
 
 def psrw_mixing_variance(G, k, steps_num=1000, burn_in_limit=20):
     v = random.choice(list(G.nodes()))
@@ -220,7 +220,6 @@ def psrw_mixing_variance(G, k, steps_num=1000, burn_in_limit=20):
     cached_sub_edge_num = {T_type: sub_edge_num(k, T_type)
                            for T_type in range(len(CACHED_GRAPHLET_LIST[k]))
                           }
-
     samples = []
 
     memory = [None for _ in range(burn_in_limit)]
@@ -300,7 +299,7 @@ def psrw_count(G, k, steps_num=1000, burn_in=10):
     return exp_counter
 
 def run_psrw(graph_name, k, steps_num):
-    G = load_graph(graph_name, k)['graph']
+    G = load_graph(graph_name, k)
     expectation, variance, correlation, samples = psrw_mixing_variance(G, k, steps_num)
     import pickle
     with open("experiments/psrw/" + graph_name
@@ -323,7 +322,8 @@ graph_names = [
     "bio-celegansneural",
     "ia-email-univ",
     "misc-fullb",
-    "as-caida",
+    "misc-as-caida",
+    "misc-polblogs"
 ]
 for graph_name in graph_names:
     run_psrw(graph_name, 5, steps_num=NUM_STEPS)
