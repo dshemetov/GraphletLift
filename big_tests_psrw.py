@@ -1,4 +1,4 @@
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 import networkx as nx
 import networkx.algorithms.isomorphism as iso
 import sympy
@@ -7,7 +7,7 @@ import random
 import time
 import itertools
 import math
-from IPython.display import clear_output
+#from IPython.display import clear_output
 
 def graphlet_list(N):
     assert N > 0
@@ -68,7 +68,7 @@ def find_type_match(T):
             return((5, {u0:0, u1:1, u2:2, u3:3}))
     # Improve matching procedure here for n>4.
     GM = next((i, iso.GraphMatcher(T,T_))
-              for (i,T_) in enumerate(cached_graphlet_list[n])
+              for (i,T_) in enumerate(CACHED_GRAPHLET_LIST[n])
               if iso.GraphMatcher(T,T_).is_isomorphic())
     assert GM[1].is_isomorphic()
     return((GM[0],GM[1].mapping))
@@ -101,7 +101,7 @@ def find_type(T):
             return 5
     # Improve matching procedure here at least for n=4.
     GM = next((i
-              for (i,T_) in enumerate(cached_graphlet_list[n])
+              for (i,T_) in enumerate(CACHED_GRAPHLET_LIST[n])
               if iso.GraphMatcher(T,T_).is_isomorphic()))
     return GM
 
@@ -118,7 +118,7 @@ def subgraph(G, nodes):
 def sub_edge_num(k, T_type):
     if k < 3:
         return k
-    T = cached_graphlet_list[k][T_type]
+    T = CACHED_GRAPHLET_LIST[k][T_type]
     count = 0
     for u in T.nodes():
         S = subgraph(T, T.nodes()-{u})
@@ -203,7 +203,7 @@ def psrw_mixing_variance(G, k, steps_num=1000, burn_in_limit=20):
     v = random.choice(list(G.nodes()))
     init_graphlet = lift(G, v, k-1)
     old_graphlet = init_graphlet
-    graphlet_num = len(cached_graphlet_list[k])
+    graphlet_num = len(CACHED_GRAPHLET_LIST[k])
     exp_counter = {i:0 for i in range(graphlet_num)}
     var_counter = {i:0 for i in range(graphlet_num)}
     type_counter = {i:0 for i in range(graphlet_num)}
@@ -217,6 +217,9 @@ def psrw_mixing_variance(G, k, steps_num=1000, burn_in_limit=20):
                     for i in range(graphlet_num)}
     expectation = {i:0 for i in range(graphlet_num)}
     variance = {i:0 for i in range(graphlet_num)}
+    cached_sub_edge_num = {T_type: sub_edge_num(k, T_type)
+                           for T_type in range(len(CACHED_GRAPHLET_LIST[k]))
+                          }
 
     memory = [None for _ in range(burn_in_limit)]
     for _ in range(steps_num):
@@ -273,8 +276,11 @@ def psrw_count(G, k, steps_num=1000, burn_in=10):
     v = random.choice(list(G.nodes()))
     init_graphlet = lift(G, v, k-1)
     old_graphlet = init_graphlet
-    graphlet_num = len(cached_graphlet_list[k])
+    graphlet_num = len(CACHED_GRAPHLET_LIST[k])
     exp_counter = {i:0 for i in range(graphlet_num)}
+    cached_sub_edge_num = {T_type: sub_edge_num(k, T_type)
+                           for T_type in range(len(CACHED_GRAPHLET_LIST[k]))
+                          }
 
     for _ in range(steps_num):
         new_graphlet = SRW_step(G, old_graphlet)[0]
@@ -291,10 +297,6 @@ def psrw_count(G, k, steps_num=1000, burn_in=10):
     return exp_counter
 
 def run_psrw(graph_name, k, steps_num):
-    cached_graphlet_list = graphlet_list(k)
-    cached_sub_edge_num = {T_type: sub_edge_num(k, T_type)
-                           for T_type in range(len(cached_graphlet_list[k]))
-                          }
     G = load_graph(graph_name, k)['graph']
     expectation, variance, correlation = psrw_mixing_variance(G, k, steps_num)
     import pickle
@@ -308,17 +310,20 @@ def run_psrw(graph_name, k, steps_num):
               + "_" + str(k) + '_correlation.pickle', 'wb') as f:
         pickle.dump(correlation, f)
 
+CACHED_GRAPHLET_LIST = graphlet_list(6)
+NUM_STEPS = 10**2
+
 graph_names = [
     "bio-celegansneural",
-    "ia-email-univ",
-    "misc-fullb",
-    "as-caida",
+    # "ia-email-univ",
+    # "misc-fullb",
+    # "as-caida",
 ]
 for graph_name in graph_names:
-    run_psrw(graph_name, 5, steps_num = 10**7)
-    run_psrw(graph_name, 6, steps_num = 10**7)
+    run_psrw(graph_name, 5, steps_num = NUM_STEPS)
+    run_psrw(graph_name, 6, steps_num = NUM_STEPS)
 
-run_psrw("socfb-B-anon", 3, steps_num = 10**7)
-run_psrw("socfb-B-anon", 4, steps_num = 10**7)
-run_psrw("socfb-B-anon", 5, steps_num = 10**7)
-run_psrw("socfb-B-anon", 6, steps_num = 10**7)
+# run_psrw("socfb-B-anon", 3, steps_num = 10**7)
+# run_psrw("socfb-B-anon", 4, steps_num = 10**7)
+# run_psrw("socfb-B-anon", 5, steps_num = 10**7)
+# run_psrw("socfb-B-anon", 6, steps_num = 10**7)
