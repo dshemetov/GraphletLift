@@ -221,6 +221,8 @@ def psrw_mixing_variance(G, k, steps_num=1000, burn_in_limit=20):
                            for T_type in range(len(CACHED_GRAPHLET_LIST[k]))
                           }
 
+    samples = []
+
     memory = [None for _ in range(burn_in_limit)]
     for _ in range(steps_num):
         new_graphlet = SRW_step(G, old_graphlet)[0]
@@ -240,6 +242,7 @@ def psrw_mixing_variance(G, k, steps_num=1000, burn_in_limit=20):
                 corr_counter[T_type][ind] += (T_prob*S_prob)**(-1)
             ind+=1
         memory = [(T_type, T_prob)] + memory[:-1]
+        samples.append([T_type, T_prob])
 
     for i in range(graphlet_num):
         expectation[i] = exp_counter[i]*steps_num**(-1)
@@ -270,7 +273,7 @@ def psrw_mixing_variance(G, k, steps_num=1000, burn_in_limit=20):
 #                 print("({0}, {1:.5f})".format(burn_in+1, val))
 #         else:
 #             print("No graphlets found")
-    return (expectation, variance, correlation)
+    return (expectation, variance, correlation, samples)
 
 def psrw_count(G, k, steps_num=1000, burn_in=10):
     v = random.choice(list(G.nodes()))
@@ -298,7 +301,7 @@ def psrw_count(G, k, steps_num=1000, burn_in=10):
 
 def run_psrw(graph_name, k, steps_num):
     G = load_graph(graph_name, k)['graph']
-    expectation, variance, correlation = psrw_mixing_variance(G, k, steps_num)
+    expectation, variance, correlation, samples = psrw_mixing_variance(G, k, steps_num)
     import pickle
     with open("experiments/psrw/" + graph_name
               + "_" + str(k) + '_expectation.pickle', 'wb') as f:
@@ -309,6 +312,9 @@ def run_psrw(graph_name, k, steps_num):
     with open("experiments/psrw/" + graph_name
               + "_" + str(k) + '_correlation.pickle', 'wb') as f:
         pickle.dump(correlation, f)
+    with open("experiments/psrw/" + graph_name
+              + "_" + str(k) + '_samples.pickle', 'wb') as f:
+        pickle.dump(samples, f)
 
 CACHED_GRAPHLET_LIST = graphlet_list(6)
 NUM_STEPS = 10**7
