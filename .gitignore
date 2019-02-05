@@ -1,5 +1,6 @@
 *.pyc
 .DS_Store
-pynauty-0.6.0*
-Graphs*
+pynauty-0.6.0
+Graphs/socfb-B-anon*
 *.pickle
+experiments

@@ -14,6 +14,7 @@ pylint = "*"
 pipfile = "*"
 dill = "*"
 scipy = "*"
+"matplotlib2tikz" = "*"
 
 [requires]
 python_version = "3.5"

@@ -44,7 +44,7 @@ def get_graphlet_names(k):
     elif k == 2:
         return ['2-path']
     elif k == 3:
-        return ['wedge', 'triangle']
+        return ['2-star', '3-cycle']
     elif k == 4:
         return ['3-star', '4-path', '4-tailedtriangle', '4-cycle',
                 '4-chordcycle', '4-clique']
