@@ -44,7 +44,7 @@ def get_graphlet_names(k):
     elif k == 2:
         return ['2-path']
     elif k == 3:
-        return ['2-star', '3-cycle']
+        return ['wedge', 'triangle']
     elif k == 4:
         return ['3-star', '4-path', '4-tailedtriangle', '4-cycle',
                 '4-chordcycle', '4-clique']
@@ -511,32 +511,67 @@ class Lift():
 
         Trusted - DS.
         """
-        # Sample vertices.
-        if self.vertex_choice == "random walk":
-            vertices = [sample_vertex(self.graph, burn_in=BURN_IN)]
-            for _ in range(num_steps-1):
-                vertices.append(randomwalk_from_vertex(
-                    self.graph, vertices[-1], burn_in))
-        else:
-            vertices = [sample_vertex(self.graph, burn_in=BURN_IN)
-                        for i in range(num_steps)]
+        import multiprocessing as mp
+        from functools import partial
+        with mp.Pool() as p:
+            # Sample vertices.
+            if self.vertex_choice == "random walk":
+                vertices = [sample_vertex(self.graph, burn_in=BURN_IN)]
+                for _ in range(num_steps-1):
+                    vertices.append(randomwalk_from_vertex(
+                        self.graph, vertices[-1], burn_in))
+            else:
+                _mp_sample_vertex = partial(
+                    sample_vertex, self.graph, burn_in=BURN_IN)
+                vertices = p.map(_mp_sample_vertex, range(num_steps))
 
-        # Non-parallel code.
-        # Sample graphlets at those vertices.
-        graphlet_samples = [
-            sample_unordered_lift(self.graph, self.k, vertex, burn_in)
-            for vertex in vertices
-        ]
+            # Non-parallel code.
+            # Sample graphlets at those vertices.
+            # graphlet_samples = [
+            #     sample_unordered_lift(self.graph, self.k, vertex, burn_in)
+            #     for vertex in vertices
+            # ]
+            # Parallel code.
+            _mp_sample_graphlet = partial(
+                sample_unordered_lift, self.graph, self.k,
+                burn_in=BURN_IN)
+            graphlet_samples = p.map(_mp_sample_graphlet, vertices)
 
-        # Convert graphlets to probabilities and types.
-        # Non-parallel code.
+            # Convert graphlets to probabilities and types.
+            # Non-parallel code.
+            # samples = [
+            #     get_graphlet_prob(
+            #         self.graph, self.nx_graphlet_dict,
+            #         self.na_graphlet_cert_dict,
+            #         self.prob_functions, graphlet_sample)
+            #     for graphlet_sample in graphlet_samples
+            #     ]
+
+            # Parallel code.
+            subgraphs = p.map(self.graph.subgraph, graphlet_samples)
+            subgraphs = p.map(nx.Graph, subgraphs)
+            _mp_find_type = partial(
+                find_type_match, self.nx_graphlet_dict,
+                self.na_graphlet_cert_dict)
+            #import pdb; pdb.set_trace()
+            types = p.map(_mp_find_type, subgraphs)
+            _mp_get_degree_list = partial(
+                get_degree_list, self.graph
+            )
+            degree_lists = p.map(
+                _mp_get_degree_list, [e[1] for e in types]
+                )
+            #import pdb; pdb.set_trace()
         samples = [
-            get_graphlet_prob(
-                self.graph, self.nx_graphlet_dict,
-                self.na_graphlet_cert_dict,
-                self.prob_functions, graphlet_sample)
-            for graphlet_sample in graphlet_samples
+            (e[0], self.prob_functions[e[0]](*degree_lists[i]))
+            for i, e in enumerate(types)
             ]
+            # method2 = partial(
+            #     get_graphlet_prob, self.graph,
+            #     self.nx_graphlet_dict, self.na_graphlet_cert_dict,
+            #     self.prob_functions
+            # )
+            # samples = p.map(method2, graphlet_samples)
 
         return (samples, graphlet_samples)
 
