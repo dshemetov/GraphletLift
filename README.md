@@ -22,6 +22,14 @@ make tests
 exit
 ```
 
+To verify that you have installed everything correctly run
+
+```
+pipenv run python tests.py
+```
+
+which should conclude with an average time report.
+
 The code has been tested on 
 * OS Mojave 10.14.3, Python 3.5.2, gcc Developer tools
 * Linux Ubunti 16.04, Python 3.5.2, gcc
