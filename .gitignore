@@ -4,5 +4,5 @@ pynauty-0.6.0
 Graphs/socfb-B-anon*
 *.pickle
 experiments
-.ipynb_checkpoints/*
+.ipynb_checkpoints
 
