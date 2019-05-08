@@ -32,7 +32,7 @@ which should conclude with an average time report.
 
 The code has been tested on 
 * OS Mojave 10.14.3, Python 3.5.2, gcc Developer tools
-* Linux Ubunti 16.04, Python 3.5.2, gcc
+* Linux Ubuntu 16.04, Python 3.5.2, gcc
 
 See the "Introduction.ipynb" for a tutorial on usage.
 
@@ -40,6 +40,6 @@ The bulk of the code is contained in "lift.py". The unit tests are in "tests.py"
 
 ## Dependencies
 
-The code uses [pynauty-0.6.0](https://web.cs.dal.ca/~peter/software/pynauty/html/), a wrapper for [nauty](http://pallini.di.uniroma1.it/) by Peter Dobcsányi, and [networkx](https://networkx.github.io/). 
+The code uses [pynauty-0.6.0](https://web.cs.dal.ca/~peter/software/pynauty/html/), a wrapper for [nauty](http://pallini.di.uniroma1.it/) by Peter Dobcsányi, and [networkx](https://networkx.github.io/). For ease of installation, pynauty-0.6.0 is bundled in this repo.
 
 We compared our method to two other modern methods: [PGD](https://github.com/nkahmed/pgd#input-file-format) and [ESCAPE](https://bitbucket.org/seshadhri/escape).
