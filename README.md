@@ -1,5 +1,7 @@
 # GraphletLift Comparisons
-GraphletLift is an algorithm to estimate the graphlet counts by a method we call lifting. The method is described and analyzed in [this paper](pdf/graphlet_lift.pdf), with some theoretical results in the [supplementary materials](pdf/graphlet_lift_supp.pdf). We also have an introductory [Jupyter notebook](Introduction.ipynb).
+GraphletLift is an algorithm to estimate the graphlet counts by a method we call lifting. The method is described and analyzed in [this paper](https://arxiv.org/abs/1802.08736), with some theoretical results in the supplementary materials.
+
+You can jump in to a demo at the introductory [Jupyter notebook](Introduction.ipynb).
 
 ## Instructions
 
